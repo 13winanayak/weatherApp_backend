@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Weather App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+        /* Reset & basics */
+        * {
+          box-sizing: border-box;
+        }
+        body {
+          margin: 0;
+          font-family: 'Montserrat', sans-serif;
+          background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 20px;
+          color: #222;
+        }
+
+        /* Container */
+        .container {
+          background: rgba(255,255,255,0.95);
+          border-radius: 15px;
+          padding: 30px 40px;
+          max-width: 420px;
+          width: 100%;
+          box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+          animation: fadeIn 0.8s ease forwards;
+        }
+
+        /* Heading */
+        h2 {
+          margin-bottom: 25px;
+          font-weight: 700;
+          text-align: center;
+          color: #34495e;
+          letter-spacing: 1.2px;
+        }
+
+        /* Input & button */
+        .input-group {
+          display: flex;
+          margin-bottom: 25px;
+        }
+        input[type="text"] {
+          flex: 1;
+          padding: 12px 15px;
+          border: 2px solid #74ebd5;
+          border-radius: 8px 0 0 8px;
+          font-size: 16px;
+          transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus {
+          outline: none;
+          border-color: #ACB6E5;
+          box-shadow: 0 0 8px #ACB6E5;
+        }
+        button {
+          background: #74ebd5;
+          border: none;
+          padding: 0 25px;
+          font-weight: 600;
+          font-size: 16px;
+          color: #fff;
+          border-radius: 0 8px 8px 0;
+          cursor: pointer;
+          transition: background 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        button:hover {
+          background: #59c7c5;
+        }
+        button:active {
+          transform: scale(0.95);
+        }
+
+        /* Loading */
+        #loading {
+          font-style: italic;
+          color: #34495e;
+          text-align: center;
+          margin-bottom: 20px;
+          animation: blink 1.5s infinite;
+        }
+
+        /* Error */
+        #error {
+          color: #e74c3c;
+          text-align: center;
+          margin-bottom: 20px;
+          font-weight: 600;
+        }
+
+        /* Weather result box */
+        #weather {
+          display: none;
+          background: #f0f6fb;
+          border-radius: 12px;
+          padding: 25px 30px;
+          box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+          animation: slideIn 0.6s ease forwards;
+        }
+        #weather h3 {
+          margin-top: 0;
+          color: #34495e;
+          font-weight: 700;
+          font-size: 28px;
+          margin-bottom: 15px;
+        }
+        #weather p {
+          font-size: 18px;
+          margin: 6px 0;
+          color: #555;
+        }
+        #weather p b {
+          color: #2c3e50;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Weather App</h2>
+
+    <div class="input-group">
+        <input type="text" id="cityInput" placeholder="Enter city name" autocomplete="off" />
+        <button onclick="getWeather()" aria-label="Get weather">☀️</button>
+    </div>
+
+    <div id="loading" style="display:none;">Loading...</div>
+    <div id="error"></div>
+
+    <div id="weather" aria-live="polite">
+        <h3 id="cityName"></h3>
+        <p><b>Temperature:</b> <span id="temp"></span> °C</p>
+        <p><b>Condition:</b> <span id="condition"></span></p>
+        <p><b>Humidity:</b> <span id="humidity"></span>%</p>
+        <p><b>Wind Speed:</b> <span id="wind"></span> m/s</p>
+    </div>
+</div>
+
+<script>
+    function getWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      if (!city) {
+        alert('Please enter a city name');
+        return;
+      }
+
+      const weatherDiv = document.getElementById('weather');
+      const errorDiv = document.getElementById('error');
+      const loadingDiv = document.getElementById('loading');
+
+      weatherDiv.style.display = 'none';
+      errorDiv.textContent = '';
+      loadingDiv.style.display = 'block';
+
+      fetch(`http://localhost:8080/api/weather/${city}`)
+        .then(response => {
+          loadingDiv.style.display = 'none';
+          if (!response.ok) {
+            throw new Error('City not found or API error');
+          }
+          return response.json();
+        })
+        .then(data => {
+          document.getElementById('cityName').textContent = data.name;
+          document.getElementById('temp').textContent = data.main.temp;
+          document.getElementById('condition').textContent = data.weather[0].description;
+          document.getElementById('humidity').textContent = data.main.humidity;
+          document.getElementById('wind').textContent = data.wind.speed;
+          weatherDiv.style.display = 'block';
+        })
+        .catch(error => {
+          errorDiv.textContent = error.message;
+        });
+    }
+</script>
+
+</body>
+</html>
